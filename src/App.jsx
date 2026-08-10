@@ -1,10 +1,51 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
 
 function App() {
   const canvasRef = useRef(null);
+  const [fakeIp, setFakeIp] = useState('185.220.101.45');
+  const [incidentId, setIncidentId] = useState('ERR-SYS-99042');
 
-  // Background Red Particles Canvas Animation
+  // Randomize IP and Incident code periodically to give a live intrusion tracking feel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const p1 = Math.floor(Math.random() * 200) + 50;
+      const p2 = Math.floor(Math.random() * 250) + 10;
+      const p3 = Math.floor(Math.random() * 250) + 10;
+      const p4 = Math.floor(Math.random() * 250) + 10;
+      setFakeIp(`${p1}.${p2}.${p3}.${p4}`);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Web Audio Synth Eerie Warning Alarm on user click
+  const playAlarmSound = () => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.6);
+      
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.6);
+    } catch (e) {
+      // Audio fallback silent
+    }
+  };
+
+  // Background Dark Red Canvas Matrix/Particle Network
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -20,20 +61,18 @@ function App() {
     };
     window.addEventListener('resize', handleResize);
 
-    // Particle nodes
-    const particles = Array.from({ length: 45 }, () => ({
+    const particles = Array.from({ length: 55 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5 - 0.2,
-      radius: Math.random() * 2 + 1,
-      alpha: Math.random() * 0.6 + 0.2
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8,
+      radius: Math.random() * 2.5 + 1,
+      alpha: Math.random() * 0.7 + 0.3
     }));
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Draw particles & connect lines
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         p.x += p.vx;
@@ -46,22 +85,21 @@ function App() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 26, 37, ${p.alpha})`;
+        ctx.fillStyle = `rgba(255, 0, 0, ${p.alpha})`;
         ctx.fill();
 
-        // Connect nearby particles with subtle red laser lines
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j];
           const dx = p.x - p2.x;
           const dy = p.y - p2.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 110) {
+          if (dist < 120) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(255, 26, 37, ${(1 - dist / 110) * 0.18})`;
-            ctx.lineWidth = 0.8;
+            ctx.strokeStyle = `rgba(255, 0, 0, ${(1 - dist / 120) * 0.25})`;
+            ctx.lineWidth = 1;
             ctx.stroke();
           }
         }
@@ -78,57 +116,94 @@ function App() {
     };
   }, []);
 
+  const handlePanicLeave = () => {
+    playAlarmSound();
+    // Redirect immediately to safety / google / back
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = 'https://www.google.com';
+    }
+  };
+
   return (
-    <div className="suspended-wrapper">
+    <div className="suspended-wrapper" onClick={playAlarmSound}>
+      {/* Red Emergency Vignette Flash */}
+      <div className="horror-vignette" />
+      
       {/* Background Interactive Canvas */}
       <canvas ref={canvasRef} className="canvas-bg" />
       <div className="grid-overlay" />
       <div className="scanline" />
-      <div className="glow-pulse-bg" />
 
-      {/* Main Glass Card */}
+      {/* Main Horror Warning Card */}
       <main className="suspended-card">
-        {/* Live Pill */}
+        {/* Emergency Alert Pill */}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div className="live-status-pill">
+          <div className="horror-alert-pill">
             <span className="pulsing-dot" />
-            Live System Status
+            ⚠️ CRITICAL WARNING: ACCESS DENIED
           </div>
         </div>
 
-        {/* Lock Graphic */}
-        <div className="lock-container">
-          <div className="lock-outer-ring" />
-          <div className="lock-inner-glow" />
+        {/* Skull / Biohazard Icon */}
+        <div className="skull-wrapper">
+          <div className="skull-glow-ring" />
           <svg
-            className="lock-icon"
-            width="42"
-            height="42"
+            className="skull-icon"
+            width="46"
+            height="46"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.2"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            <circle cx="12" cy="16" r="1.5" fill="currentColor" />
+            <path d="M12 2a8 8 0 0 0-8 8c0 3.3 2 6.1 5 7.3V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.7c3-1.2 5-4 5-7.3a8 8 0 0 0-8-8z" />
+            <circle cx="9" cy="10" r="1.5" fill="currentColor" />
+            <circle cx="15" cy="10" r="1.5" fill="currentColor" />
+            <path d="M10 16v3" />
+            <path d="M14 16v3" />
           </svg>
         </div>
 
         {/* Title */}
-        <h1 className="suspended-title">
-          <span className="glitch-text" data-text="WEBSITE SUSPENDED">
+        <h1 className="horror-title">
+          <span className="glitch-horror" data-text="WEBSITE SUSPENDED">
             WEBSITE SUSPENDED
           </span>
         </h1>
 
-        {/* Description */}
-        <p className="suspended-desc">
-          This domain/website has been <span>permanently suspended</span>.<br />
-          Access to this page has been restricted.
+        {/* Subtext */}
+        <p className="horror-subtext">
+          This domain has been <span>TERMINATED & SEIZED</span> by network security.<br />
+          Unauthorized attempts to breach this system are actively monitored.
         </p>
+
+        {/* Live Cyber Intrusion Tracker */}
+        <div className="tracker-box">
+          <div className="tracker-row">
+            <span className="tracker-key">VISITOR_IP_LOGGED:</span>
+            <span className="tracker-val">{fakeIp}</span>
+          </div>
+          <div className="tracker-row">
+            <span className="tracker-key">SECURITY_LEVEL:</span>
+            <span className="tracker-val">MAXIMUM_LOCKDOWN</span>
+          </div>
+          <div className="tracker-row">
+            <span className="tracker-key">DEVICE_TRACE:</span>
+            <span className="tracker-val">ACTIVE_TRACKING...</span>
+          </div>
+        </div>
+
+        {/* Panic Button */}
+        <button className="panic-btn" onClick={handlePanicLeave}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          LEAVE IMMEDIATELY (GO BACK)
+        </button>
       </main>
     </div>
   );
